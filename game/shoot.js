@@ -1,15 +1,13 @@
 var bulletTime1 = 0;
 
 var bullet_player1_material = new THREE.MeshLambertMaterial(
-{
-    color: 0x00ff00, 
-    transparent: false
-});
-
-function shoot()
-{
-    if (keyboard.pressed("space") && bulletTime1 + 0.8 < clock.getElapsedTime())
     {
+        color: 0x00ff00,
+        transparent: false
+    });
+
+function shoot() {
+    if (keyboard.pressed("space") && bulletTime1 + 0.8 < clock.getElapsedTime()) {
         bullet = new THREE.Mesh(
             new THREE.SphereGeometry(2),
             bullet_player1_material);
@@ -19,34 +17,31 @@ function shoot()
         bullet.angle = player1.direction;
         player1.bullets.push(bullet);
         bulletTime1 = clock.getElapsedTime();
-    } 
+    }
 
     // move bullets
     var moveDistance = 5;
 
-    for (var i = 0; i < player1.bullets.length; i++)
-    {
+    for (var i = 0; i < player1.bullets.length; i++) {
         player1.bullets[i].position.x += moveDistance * Math.cos(player1.bullets[i].angle);
         player1.bullets[i].position.y += moveDistance * Math.sin(player1.bullets[i].angle);
     }
 
 }
 
-function collisions()
-{
+function collisions() {
     bullet_collision();
     player_collision();
     player_falling();
+    bullet_player_collision();
+    // player_player_collision();
 }
 
-function bullet_collision()
-{
+function bullet_collision() {
     //collision between bullet and walls
-    for (var i = 0; i < player1.bullets.length; i++)
-    {
+    for (var i = 0; i < player1.bullets.length; i++) {
         if (Math.abs(player1.bullets[i].position.x) >= WIDTH / 2 ||
-            Math.abs(player1.bullets[i].position.y) >= HEIGHT / 2)
-        {
+            Math.abs(player1.bullets[i].position.y) >= HEIGHT / 2) {
             scene.remove(player1.bullets[i]);
             player1.bullets.splice(i, 1);
             i--;
@@ -55,23 +50,45 @@ function bullet_collision()
 
 }
 
-function player_collision()
-{
+function bullet_player_collision() {
+    for (var i = 0; i < player1.bullets.length; i++) {
+        console.log(player1.bullets[i].position)
+        if ((player1.bullets[i].position.x >= player2.graphic.position.x - 10) && (player1.bullets[i].position.x < player2.graphic.position.x + 10) &&
+            (player1.bullets[i].position.y >= player2.graphic.position.y - 10) && (player1.bullets[i].position.y < player2.graphic.position.y + 10)) {
+            player2.dead();
+            scene.remove(player1.bullets[i]);
+            player1.bullets.splice(i, 1);
+            i--;
+        }
+    }
+}
+
+function player_collision() {
     //collision between player and walls
     var x = player1.graphic.position.x + WIDTH / 2;
     var y = player1.graphic.position.y + HEIGHT / 2;
 
-    if ( x > WIDTH )
+    if (x < 0)
+        player1.graphic.position.x -= x;
+    if (x > WIDTH)
         player1.graphic.position.x -= x - WIDTH;
-    if ( y < 0 )
+    if (y < 0)
         player1.graphic.position.y -= y;
-    if ( y > HEIGHT )
+    if (y > HEIGHT)
         player1.graphic.position.y -= y - HEIGHT;
 
 }
 
-function player_falling()
-{
+var playerCollisionTime = 0;
+
+function player_player_collision() {
+    if ((player1.graphic.position.x >= player2.graphic.position.x - 10) && (player1.graphic.position.x < player2.graphic.position.x + 10) &&
+        (player1.graphic.position.y >= player2.graphic.position.y - 10) && (player1.graphic.position.y < player2.graphic.position.y + 10)) {
+        player1.wound();
+    }
+}
+
+function player_falling() {
     var nb_tile = 10;
     var sizeOfTileX = WIDTH / nb_tile;
     var sizeOfTileY = HEIGHT / nb_tile;
@@ -90,9 +107,8 @@ function player_falling()
 
         if ((x > tileX)
             && (x < mtileX)
-            && (y > tileY) 
-            && (y < mtileY))
-        {
+            && (y > tileY)
+            && (y < mtileY)) {
             player1.dead();
         }
     }
